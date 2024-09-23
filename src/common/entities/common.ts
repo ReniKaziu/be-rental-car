@@ -1,30 +1,31 @@
-import {Column, PrimaryGeneratedColumn, BeforeInsert, BeforeUpdate} from "typeorm";
-import { SoftDelete } from "./soft.delete";
+import {
+  Column,
+  PrimaryGeneratedColumn,
+  BeforeUpdate,
+  UpdateDateColumn,
+  CreateDateColumn,
+  BeforeInsert,
+} from "typeorm";
 
-export abstract class Common extends SoftDelete {
+export abstract class Common {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn({
-        type: "int",
-        name: "id",
-    })
-    public id: number;
+  // Store timestamps in the database as 'bigint'
+  @Column({ type: "bigint" })
+  createdAt: number;
 
-    @Column("timestamp", {
-        nullable: false,
-        default: () => "CURRENT_TIMESTAMP",
-        name: "ts_created",
-    })
-    public tsCreated: Date;
+  @Column({ type: "bigint" })
+  updatedAt: number;
 
-    @Column("timestamp", {
-        nullable: false,
-        default: () => "CURRENT_TIMESTAMP",
-        name: "ts_last_modified",
-    })
-    public tsLastModified: Date;
+  // Before insert and update, set createdAt and updatedAt to Unix milliseconds
+  @BeforeInsert()
+  beforeInsert() {
+    this.createdAt = Date.now(); // Current timestamp in milliseconds
+  }
 
-    @BeforeUpdate()
-    addLastModified() {
-        this.tsLastModified = new Date();
-    }
+  @BeforeUpdate()
+  beforeUpdate() {
+    this.updatedAt = Date.now(); // Current timestamp in milliseconds
+  }
 }

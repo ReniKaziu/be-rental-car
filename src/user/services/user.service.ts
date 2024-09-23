@@ -8,72 +8,72 @@ import { User } from "../entities/user.entity";
 import { Helper } from "../../common/utilities/Helper";
 const UUID = require("uuid/v1");
 
-export class UserService {
-  static list = async (
-    queryStringProcessor: QueryStringProcessor,
-    filter: any
-  ) => {
-    const userRepository = getCustomRepository(UserRepository);
+// export class UserService {
+//   static list = async (
+//     queryStringProcessor: QueryStringProcessor,
+//     filter: any
+//   ) => {
+//     const userRepository = getCustomRepository(UserRepository);
 
-    return await userRepository.list(queryStringProcessor, filter);
-  };
+//     return await userRepository.list(queryStringProcessor, filter);
+//   };
 
-  static insert = async (userPayload: User) => {
-    const userRepository = getCustomRepository(UserRepository);
+//   static insert = async (userPayload: User) => {
+//     const userRepository = getCustomRepository(UserRepository);
 
-    const { name, surname, email, password, role, profilePicture } =
-      userPayload;
+//     const { name, surname, email, password, role, profilePicture } =
+//       userPayload;
 
-    const user = await userRepository.create({
-      name,
-      surname,
-      email,
-      // password: Md5.init(password),
-      role: role ? role : UserRole.USER,
-      verifyToken: UUID(),
-      tsVerifyTokenExpiration: Functions.getDateAfter(
-        process.env.DURATION_ACTIVATION_TOKEN_HOURS,
-        "h"
-      ),
-      profilePicture: "default-user.png",
-    });
+//     const user = await userRepository.create({
+//       name,
+//       surname,
+//       email,
+//       // password: Md5.init(password),
+//       role: role ? role : UserRole.USER,
+//       verifyToken: UUID(),
+//       tsVerifyTokenExpiration: Functions.getDateAfter(
+//         process.env.DURATION_ACTIVATION_TOKEN_HOURS,
+//         "h"
+//       ),
+//       profilePicture: "default-user.png",
+//     });
 
-    if (Helper.isDefined(profilePicture)) {
-      try {
-        const { filePath } = await File.insertBase64Media(profilePicture, name);
-        user.profilePicture = filePath;
-      } catch (error) {
-        console.log(error);
-      }
-    }
+//     if (Helper.isDefined(profilePicture)) {
+//       try {
+//         const { filePath } = await File.insertBase64Media(profilePicture, name);
+//         user.profilePicture = filePath;
+//       } catch (error) {
+//         console.log(error);
+//       }
+//     }
 
-    await userRepository.save(user);
+//     await userRepository.save(user);
 
-    return user;
-  };
+//     return user;
+//   };
 
-  static getById = async (userId: number) => {
-    const userRepository = getCustomRepository(UserRepository);
+//   static getById = async (userId: number) => {
+//     const userRepository = getCustomRepository(UserRepository);
 
-    return await userRepository.findById(userId);
-  };
+//     return await userRepository.findById(userId);
+//   };
 
-  static update = async (userPayload: User, currentUser: User) => {
-    const userRepository = getCustomRepository(UserRepository);
+//   static update = async (userPayload: User, currentUser: User) => {
+//     const userRepository = getCustomRepository(UserRepository);
 
-    if (Helper.isDefined(userPayload.password)) {
-      // userPayload.password = Md5.init(userPayload.password);
-    }
+//     if (Helper.isDefined(userPayload.password)) {
+//       // userPayload.password = Md5.init(userPayload.password);
+//     }
 
-    const finalUser = userRepository.merge(currentUser, userPayload);
-    await userRepository.save(finalUser);
+//     const finalUser = userRepository.merge(currentUser, userPayload);
+//     await userRepository.save(finalUser);
 
-    return finalUser;
-  };
+//     return finalUser;
+//   };
 
-  static deleteById = async (userId: number) => {
-    const userRepository = getCustomRepository(UserRepository);
+//   static deleteById = async (userId: number) => {
+//     const userRepository = getCustomRepository(UserRepository);
 
-    await userRepository.deleteById(userId);
-  };
-}
+//     await userRepository.deleteById(userId);
+//   };
+// }

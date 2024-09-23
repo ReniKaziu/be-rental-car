@@ -10,59 +10,72 @@ import { Helper } from "../../common/utilities/Helper";
 
 @EntityRepository(User)
 export class UserRepository extends CommonRepository<User> {
+  public list = async (
+    queryStringProcessor: QueryStringProcessor,
+    filter: IUserFilter
+  ) => {
+    const select = [
+      "id",
+      "name",
+      "surname",
+      "email",
+      "role",
+      "profile_picture",
+    ];
 
-    public list = async (queryStringProcessor: QueryStringProcessor, filter: IUserFilter) => {
+    const joins = [];
 
-        const select = [
-            'id',
-            'name',
-            'surname',
-            'email',
-            'role',
-            'profile_picture'
-        ];
+    const queryConditions = [new Condition("users.deleted = 0")];
 
-        const joins = [];
+    if (queryStringProcessor.getSearch()) {
+      const conditionGroup = this.getSearchConditionGroup(
+        "users",
+        queryStringProcessor.getSearch()
+      );
 
-        const queryConditions = [
-            new Condition("users.deleted = 0")
-        ];
-
-        if (queryStringProcessor.getSearch()) {
-
-            const conditionGroup = this.getSearchConditionGroup("users", queryStringProcessor.getSearch());
-
-            queryConditions.push(new Condition(conditionGroup));
-        }
-
-        const filterInfo = new FilterInfo(
-            new ConditionGroup(queryConditions)
-        );
-
-        const countSelect = ["COUNT(users.id) AS total"];
-        const { total } = await this.getEntitySelect(countSelect, joins, filterInfo).getRawOne();
-
-        const paginationResult = queryStringProcessor.getPaginationResponse(parseInt(total));
-
-        const sort = this.getSortObject(select, queryStringProcessor);
-        
-        if (Helper.isDefined(sort)) {
-            filterInfo.sort = sort;
-        }
-
-        const results = await this.entitySelect(select, joins, filterInfo, queryStringProcessor.getOffset(), queryStringProcessor.getLimit());
-
-        return {
-            pagination: paginationResult,
-            page: results
-        };
+      queryConditions.push(new Condition(conditionGroup));
     }
 
-    public deleteById(id: number) {
-        return this.createQueryBuilder()
-            .update(User)
-            .set({ deleted: true })
-            .where("id = :id", { id })
-            .execute();
+    const filterInfo = new FilterInfo(new ConditionGroup(queryConditions));
+
+    const countSelect = ["COUNT(users.id) AS total"];
+    const { total } = await this.getEntitySelect(
+      countSelect,
+      joins,
+      filterInfo
+    ).getRawOne();
+
+    const paginationResult = queryStringProcessor.getPaginationResponse(
+      parseInt(total)
+    );
+
+    const sort = this.getSortObject(select, queryStringProcessor);
+
+    if (Helper.isDefined(sort)) {
+      filterInfo.sort = sort;
     }
+
+    const results = await this.entitySelect(
+      select,
+      joins,
+      filterInfo,
+      queryStringProcessor.getOffset(),
+      queryStringProcessor.getLimit()
+    );
+
+    return {
+      pagination: paginationResult,
+      page: results,
+    };
+  };
+
+  public deleteById(id: number) {
+    return (
+      this.createQueryBuilder()
+        .update(User)
+        // .set({ deleted: true })
+        .where("id = :id", { id })
+        .execute()
+    );
+  }
 }
