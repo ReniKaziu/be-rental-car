@@ -1,5 +1,5 @@
 import { Controller, Get, NotFoundError, Post, Res, UseBefore } from 'routing-controllers';
-import { Example } from '../entities/example.entity';
+// import { Example } from '../entities/example.entity';
 import { getRepository } from 'typeorm';
 import { CustomError } from '../common/utilities/CustomError';
 
@@ -11,11 +11,11 @@ import { CustomError } from '../common/utilities/CustomError';
 export class UserController {
   @Get()
   async getAll() {
-    const example = new Example();
+    // const example = new Example();
     // example.field = 'example';
     // throw Error('custom error');
     // throw new NotFoundError();
-    return await getRepository(Example).save(example);
+    // return await getRepository(Example).save(example);
   }
 
   @Post()
