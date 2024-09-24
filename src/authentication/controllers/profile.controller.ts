@@ -1,15 +1,15 @@
-import { Response, Request } from "express";
-import { getRepository, getCustomRepository } from "typeorm";
-import { Mailer } from "../../common/utilities/Mailer";
-import { User } from "../../user/entities/user.entity";
-import { Functions } from "../../common/utilities/Functions";
-import { UserRole } from "../../user/utilities/UserRole";
-import { ErrorResponse } from "../../common/utilities/ErrorResponse";
-import { ERROR_MESSAGES } from "../../common/utilities/ErrorMessages";
-import { SuccessResponse } from "../../common/utilities/SuccessResponse";
-import { RefreshTokenRepository } from "../repositories/refresh.token.repository";
+import { Response, Request } from 'express';
+import { getRepository, getCustomRepository } from 'typeorm';
+import { Mailer } from '../../common/utilities/Mailer';
+import { User } from '../../user/entities/user.entity';
+import { Functions } from '../../common/utilities/Functions';
+import { UserRole } from '../../user/utilities/UserRole';
+import { ErrorResponse } from '../../common/utilities/ErrorResponse';
+import { ERROR_MESSAGES } from '../../common/utilities/ErrorMessages';
+import { SuccessResponse } from '../../common/utilities/SuccessResponse';
+import { RefreshTokenRepository } from '../repositories/refresh.token.repository';
 
-const UUID = require("uuid/v1");
+const UUID = require('uuid/v1');
 
 // export class ProfileController {
 //   static register = async (req: Request, res: Response) => {

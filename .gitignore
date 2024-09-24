@@ -7,3 +7,4 @@ tmp/
 temp/
 .DS_Store
 src/.DS_Store
+.env
