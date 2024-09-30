@@ -1,7 +1,7 @@
 import { Column, Entity } from 'typeorm';
 import { Common } from '../common/entities/common';
 
-export enum CompanyStatus {
+export enum BusinessStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive'
 }
@@ -34,16 +34,11 @@ export class Company extends Common {
   public longitude: number;
 
   @Column({
-    default: CompanyStatus.ACTIVE,
+    default: BusinessStatus.ACTIVE,
     type: 'enum',
-    enum: CompanyStatus
+    enum: BusinessStatus
   })
-  public status: CompanyStatus;
-
-  @Column({
-    default: true
-  })
-  public isOpen: boolean;
+  public status: BusinessStatus;
 
   @Column({
     default: false

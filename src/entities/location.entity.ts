@@ -1,15 +1,14 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Timetable } from './timetable.entity';
-
-export enum LocationStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive'
-}
+import { DayOff } from './day-off.entity';
+import { BusinessStatus } from './company.entity';
 
 @Entity('locations')
 export class Location extends Common {
-  @Column()
+  @Column({
+    nullable: true
+  })
   public name: string;
 
   @Column()
@@ -35,12 +34,15 @@ export class Location extends Common {
   public longitude: number;
 
   @Column({
-    default: LocationStatus.ACTIVE,
+    default: BusinessStatus.ACTIVE,
     type: 'enum',
-    enum: LocationStatus
+    enum: BusinessStatus
   })
-  public status: LocationStatus;
+  public status: BusinessStatus;
 
   @OneToMany(() => Timetable, (timetable) => timetable.location)
   public timetables: Timetable[];
+
+  @OneToMany(() => DayOff, (dayOff) => dayOff.location)
+  public dayOffs: DayOff[];
 }

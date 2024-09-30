@@ -2,24 +2,8 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Location } from './location.entity';
 
-enum Day {
-  SUNDAY = 0,
-  MONDAY = 1,
-  TUESDAY = 2,
-  WEDNESDAY = 3,
-  THURSDAY = 4,
-  FRIDAY = 5,
-  SATURDAY = 6
-}
-
-@Entity('timetables')
-export class Timetable extends Common {
-  @Column({
-    type: 'enum',
-    enum: Day
-  })
-  public day: Day;
-
+@Entity('dayOffs')
+export class DayOff extends Common {
   @Column({
     type: 'bigint'
   })
@@ -30,7 +14,7 @@ export class Timetable extends Common {
   })
   public to: number;
 
-  @ManyToOne(() => Location, (location) => location.timetables)
+  @ManyToOne(() => Location, (location) => location.dayOffs)
   public location: Location;
 
   @Column()
