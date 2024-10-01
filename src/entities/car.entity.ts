@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
+import { CarService } from './car-service.entity';
 
 export enum CarType {
   MICRO = 'micro',
@@ -27,7 +28,8 @@ export enum FuelType {
 
 export enum GearType {
   AUTOMATIC = 'automatic',
-  MANUAL = 'manual'
+  MANUAL = 'manual',
+  OTHER = 'other'
 }
 
 @Entity('cars')
@@ -38,25 +40,52 @@ export class Car extends Common {
   description: string;
 
   @Column()
-  public make: string; // Toyota, Honda, etc
+  public make: string;
+
+  @Column()
+  public model: string;
+
+  @Column()
+  public engine: string;
+
+  @Column()
+  public year: number;
 
   @Column({
     type: 'enum',
-    enum: CarType,
-    default: CarType.SEDAN
+    enum: FuelType
   })
-  public type: CarType; // Sedan, SUV, Minivan etc
-
-  @Column()
-  public model: string; // Corolla, Civic, etc
-
-  @Column()
-  public year: number; // 2020, 2021, etc
+  public fuelType: FuelType;
 
   @Column({
-    nullable: true
+    type: 'enum',
+    enum: GearType
   })
-  public color: string; // Red, Blue, etc
+  public gearType: GearType;
+
+  @Column({
+    type: 'enum',
+    enum: CarType
+  })
+  public type: CarType;
+
+  @Column()
+  public color: string;
+
+  @Column({
+    nullable: true,
+    type: 'int'
+  })
+  public mileage: number;
+
+  @Column()
+  public licensePlate: string;
+
+  @Column()
+  public seats: number;
+
+  @Column()
+  public doors: number;
 
   @Column({
     type: 'decimal',
@@ -65,14 +94,13 @@ export class Car extends Common {
   })
   public price: number;
 
+  //relevance score
+
   @Column({
     default: true
   })
   public isAvailable: boolean;
 
-  @Column({
-    default: 0,
-    type: 'int'
-  })
-  public mileage: number;
+  @OneToMany(() => CarService, (carService) => carService.car)
+  public services: CarService[];
 }
