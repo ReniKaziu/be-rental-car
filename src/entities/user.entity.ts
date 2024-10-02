@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
+import { Reservation } from './reservation.entity';
 
 export enum UserStatus {
   ACTIVE = 'active',
@@ -81,4 +82,10 @@ export class User extends Common {
     type: 'json'
   })
   public settings: string;
+
+  @Column()
+  public licenseNumber: string;
+
+  @OneToMany(() => Reservation, (reservation) => reservation.user)
+  public reservations: Reservation[];
 }

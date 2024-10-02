@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { CarService } from './car-service.entity';
+import { Reservation } from './reservation.entity';
 
 export enum CarType {
   MICRO = 'micro',
@@ -94,13 +95,41 @@ export class Car extends Common {
   })
   public price: number;
 
-  //relevance score
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2
+  })
+  public weeklyPrice: number;
+
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2
+  })
+  public monthlyPrice: number;
+
+  @Column()
+  public relevantScore: number;
 
   @Column({
     default: true
   })
   public isAvailable: boolean;
 
+  @Column({
+    default: 18
+  })
+  public minimumDriverAge: number;
+
+  @Column({
+    default: 1
+  })
+  public minimumRentDays: number;
+
   @OneToMany(() => CarService, (carService) => carService.car)
   public services: CarService[];
+
+  @OneToMany(() => Reservation, (reservation) => reservation.car)
+  public reservations: Reservation[];
 }

@@ -20,6 +20,9 @@ export class CarService extends Common {
   })
   public expense: string;
 
+  @Column({ type: 'bigint' })
+  public date: number;
+
   @ManyToOne(() => Car, (car) => car.services)
   public car: Car;
 
