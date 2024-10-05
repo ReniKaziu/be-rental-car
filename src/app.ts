@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 require('dotenv').config();
 import express = require('express');
-import * as cors from 'cors';
-import * as bodyParser from 'body-parser';
+import cors from 'cors';
+import bodyParser from 'body-parser';
 import { createConnection } from 'typeorm';
 import { useExpressServer } from 'routing-controllers';
 import { HttpErrorHandler } from './middlewares/error-handler.middleware';

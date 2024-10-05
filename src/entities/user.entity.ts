@@ -20,14 +20,19 @@ export class User extends Common {
   @Column()
   public lastName: string;
 
-  @Column()
+  @Column({ nullable: true, type: 'bigint' })
+  public birthday: number;
+
+  @Column({
+    nullable: true
+  })
   public displayName: string;
 
-  @Column()
+  @Column({ nullable: true })
   public email: string;
 
   @Column()
-  public number: string;
+  public phone: string;
 
   @Column()
   public password: string;
@@ -42,10 +47,8 @@ export class User extends Common {
   })
   public state: string;
 
-  @Column({
-    nullable: true
-  })
-  public confirmationCode: string;
+  @Column()
+  public confirmationCode: number;
 
   @Column({
     type: 'bigint',
@@ -65,15 +68,16 @@ export class User extends Common {
   public resetPasswordCodeExpiration: number;
 
   @Column({
-    default: UserStatus.INACTIVE,
     type: 'enum',
-    enum: UserStatus
+    enum: UserStatus,
+    default: UserStatus.INACTIVE
   })
   public status: UserStatus;
 
   @Column({
     type: 'enum',
-    enum: UserRole
+    enum: UserRole,
+    default: UserRole.CLIENT
   })
   public role: UserRole;
 
@@ -83,7 +87,9 @@ export class User extends Common {
   })
   public settings: string;
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   public licenseNumber: string;
 
   @OneToMany(() => Reservation, (reservation) => reservation.user)

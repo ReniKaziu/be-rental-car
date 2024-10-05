@@ -8,8 +8,7 @@ export class HttpErrorHandler implements ExpressErrorMiddlewareInterface {
     if (error instanceof HttpError) {
       response.status(error.httpCode).json(error);
     } else if (error instanceof CustomError) {
-      console.log('here');
-      response.status(500).json(error);
+      response.status(error.httpCode).json(error);
     } else if (error instanceof Error) {
       response.status(500).json({
         message: 'Server error',
