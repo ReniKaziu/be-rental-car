@@ -30,6 +30,7 @@ createConnection()
     useExpressServer(app, {
       controllers: [path.join(__dirname + '/controllers/*.controller.js')],
       defaultErrorHandler: false,
+      routePrefix: '/api',
       middlewares: [HttpErrorHandler]
     });
 
