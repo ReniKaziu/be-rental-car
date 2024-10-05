@@ -6,31 +6,33 @@ import { phone } from 'phone';
 import twilio from 'twilio';
 import { Log, LogLevel } from '../entities/log.entity';
 import { CustomError } from '../common/utilities/CustomError';
+import { promisify } from 'util';
+
+const pbkdf2Async = promisify(crypto.pbkdf2);
 
 export class AuthenticationService {
   public static async register(req: Request, res: Response) {
     const { password, phone: phoneNumber, firstName, lastName } = req.body;
+    const userRepository = getRepository(User);
 
     const formattedPhoneNumber = phone(phoneNumber).phoneNumber;
-    const existingUserWithPhoneNumber = await getRepository(User).findOne({ phone: formattedPhoneNumber });
+    const existingUserWithPhoneNumber = await userRepository.findOne({ phone: formattedPhoneNumber });
 
     if (existingUserWithPhoneNumber) {
-      throw new CustomError('User with this phone number already exists', 409);
+      throw new CustomError(409, 'User with this phone number already exists');
     }
 
-    const userRepository = getRepository(User);
     let user = new User();
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password + '.' + process.env.RANDOM_SALT)
-      .digest('hex');
+    const confirmationCode = crypto.randomInt(10000, 99999);
 
-    user = { ...user, ...req.body, password: hashedPassword, displayName: `${firstName} ${lastName}` };
-
-    user.phone = formattedPhoneNumber;
-    const confirmationCode = Math.floor(10000 + Math.random() * 90000);
-
-    user.confirmationCode = confirmationCode;
+    user = {
+      ...user,
+      ...req.body,
+      password: await this.hashPassword(password),
+      displayName: `${firstName} ${lastName}`,
+      phone: formattedPhoneNumber,
+      confirmationCode: confirmationCode
+    };
 
     let newUser = userRepository.create(user);
 
@@ -64,5 +66,16 @@ export class AuthenticationService {
 
       console.log({ error });
     }
+  }
+
+  private static async hashPassword(password: string, salt?: string) {
+    const SALT_LENGTH = 16;
+    const HASH_ITERATIONS = 10000;
+    const HASH_LENGTH = 64;
+    const DIGEST = 'sha512';
+
+    salt = salt ?? crypto.randomBytes(SALT_LENGTH).toString('hex');
+    const hashedPassword = await pbkdf2Async(password, salt, HASH_ITERATIONS, HASH_LENGTH, DIGEST);
+    return `${salt}:${hashedPassword.toString('hex')}`;
   }
 }

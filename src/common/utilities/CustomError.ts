@@ -1,5 +1,5 @@
 export class CustomError extends Error {
-  constructor(public message: string = 'Server error', public httpCode?: number) {
+  constructor(public httpCode?: number, public message: string = 'Server error') {
     super(message);
     this.httpCode = httpCode ?? 500;
   }
