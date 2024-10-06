@@ -1,5 +1,5 @@
 {
-  "name": "nost",
+  "name": "be-rental-car",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -44,12 +44,14 @@
   "dependencies": {
     "aes-js": "^3.1.2",
     "axios": "^0.19.2",
+    "chalk": "^4.1.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "figlet": "^1.7.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^8.5.1",
     "multer": "^1.4.2",

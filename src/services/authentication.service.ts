@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { User } from '../entities/user.entity';
+import { Request } from 'express';
+import { User, UserStatus } from '../entities/user.entity';
 import { getRepository } from 'typeorm';
 import crypto = require('crypto');
 import { phone } from 'phone';
@@ -7,18 +7,19 @@ import twilio from 'twilio';
 import { Log, LogLevel } from '../entities/log.entity';
 import { CustomError } from '../common/utilities/CustomError';
 import { promisify } from 'util';
+import * as jwt from 'jsonwebtoken';
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 
 export class AuthenticationService {
-  public static async register(req: Request, res: Response) {
+  public static async register(req: Request) {
     const { password, phone: phoneNumber, firstName, lastName } = req.body;
     const userRepository = getRepository(User);
 
     const formattedPhoneNumber = phone(phoneNumber).phoneNumber;
-    const existingUserWithPhoneNumber = await userRepository.findOne({ phone: formattedPhoneNumber });
+    const existingUser = await userRepository.findOne({ where: { phone: formattedPhoneNumber }, select: ['id'] });
 
-    if (existingUserWithPhoneNumber) {
+    if (existingUser) {
       throw new CustomError(409, 'User with this phone number already exists');
     }
 
@@ -31,7 +32,8 @@ export class AuthenticationService {
       password: await this.hashPassword(password),
       displayName: `${firstName} ${lastName}`,
       phone: formattedPhoneNumber,
-      confirmationCode: confirmationCode
+      confirmationCode: confirmationCode,
+      confirmationCodeExpiration: Date.now() + 60 * 1000 * 10
     };
 
     let newUser = userRepository.create(user);
@@ -77,5 +79,45 @@ export class AuthenticationService {
     salt = salt ?? crypto.randomBytes(SALT_LENGTH).toString('hex');
     const hashedPassword = await pbkdf2Async(password, salt, HASH_ITERATIONS, HASH_LENGTH, DIGEST);
     return `${salt}:${hashedPassword.toString('hex')}`;
+  }
+
+  public static async login({ phone: phoneNumber, password }: { phone: string; password: string }) {
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({
+      where: { phone: phone(phoneNumber).phoneNumber, status: UserStatus.ACTIVE },
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'displayName',
+        'city',
+        'state',
+        'role',
+        'settings',
+        'licenseNumber',
+        'birthday',
+        'phone',
+        'password'
+      ]
+    });
+
+    if (!user) {
+      throw new CustomError(401, 'Invalid credentials');
+    }
+
+    const [salt, dbPassword] = user.password.split(':');
+    password = (await this.hashPassword(password, salt)).split(':')[1];
+
+    if (dbPassword !== password) {
+      throw new CustomError(401, 'Invalid credentials');
+    }
+    delete user.password;
+    return {
+      accessToken: jwt.sign({ ...user }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_LIFETIME }),
+      refreshToken: jwt.sign({ ...user }, process.env.REFRESH_TOKEN_SECRET, {
+        expiresIn: process.env.REFRESH_TOKEN_LIFETIME
+      })
+    };
   }
 }

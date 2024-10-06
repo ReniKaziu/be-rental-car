@@ -12,6 +12,23 @@ export enum UserRole {
   OWNER = 'owner'
 }
 
+export type CurrentUser = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  birthday: Date | null;
+  displayName: string;
+  email: string | null;
+  phone: string;
+  city: string | null;
+  state: string | null;
+  role: UserRole;
+  settings: any | null;
+  licenseNumber: string | null;
+  iat: number;
+  exp: number;
+};
+
 @Entity('users')
 export class User extends Common {
   @Column()

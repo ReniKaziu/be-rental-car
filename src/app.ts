@@ -1,12 +1,14 @@
 import 'reflect-metadata';
 require('dotenv').config();
-import express = require('express');
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { createConnection } from 'typeorm';
-import { useExpressServer } from 'routing-controllers';
+import { Action, useExpressServer } from 'routing-controllers';
 import { HttpErrorHandler } from './middlewares/error-handler.middleware';
-const path = require('path');
+import path from 'path';
+import express from 'express';
+const chalk = require('chalk');
+const figlet = require('figlet');
 
 var app = express();
 
@@ -31,13 +33,25 @@ createConnection()
       controllers: [path.join(__dirname + '/controllers/*.controller.js')],
       defaultErrorHandler: false,
       routePrefix: '/api',
-      middlewares: [HttpErrorHandler]
+      middlewares: [HttpErrorHandler],
+      currentUserChecker: async (action: Action) => {
+        return action.request['user'];
+      }
     });
 
     const port = process.env.PORT || 4500;
 
     app.listen(port, () => {
-      return console.log(`server is listening on ${port}`);
+      const message = figlet.textSync(' # Server Running #', {
+        font: 'Slant',
+        horizontalLayout: 'default',
+        verticalLayout: 'default'
+      });
+
+      console.log(chalk.green(message));
+      console.log(chalk.blue(`🚀 Server is listening on port: ${port} 🚀`));
+      console.log(chalk.yellow(`Visit: http://localhost:${port}`));
+      console.log(chalk.cyan(`Press Ctrl + C to stop the server.`));
     });
   })
   .catch((error) => console.log(error));
