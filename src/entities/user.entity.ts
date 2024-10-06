@@ -64,7 +64,9 @@ export class User extends Common {
   })
   public state: string;
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   public confirmationCode: number;
 
   @Column({
