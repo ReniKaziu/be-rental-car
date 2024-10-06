@@ -23,29 +23,28 @@ export class AuthenticationController {
 
   @Post('/confirm')
   @UseBefore(AuthenticationMiddleware.confirm)
-  public async confirm(
-    @Body() payload: { phone: string; code: number; isResetPassword: boolean },
-    @Res() res: Response
-  ) {
+  public async confirm(@Body() payload: { phone: string; code: number }, @Res() res: Response) {
     await AuthenticationService.confirm(payload);
-    const message = payload.isResetPassword ? 'Reset password code matched' : 'Account confirmed';
 
-    return res.status(200).json({ message });
+    return res.status(200).json({ message: 'User confirmed successfully' });
   }
 
   @Post('/forgot-password')
   @UseBefore(AuthenticationMiddleware.forgotPassword)
   public async forgotPassword(@Body() payload: { phone: string }, @Res() res: Response) {
-    await AuthenticationService.forgotPassword(payload);
+    const user = await AuthenticationService.forgotPassword(payload);
 
-    return res.status(200).json({ message: 'Reset password code sent' });
+    return res.status(200).json({ message: user });
   }
 
   @Post('/reset-password')
   @UseBefore(AuthenticationMiddleware.resetPassword)
-  public async resetPassword(@Body() payload: { phone: string; password: string }, @Res() res: Response) {
-    await AuthenticationService.resetPassword(payload);
+  public async resetPassword(
+    @Body() payload: { userId: string; code: string; password: string },
+    @Res() res: Response
+  ) {
+    const user = await AuthenticationService.resetPassword(payload);
 
-    return res.status(200).json({ message: 'Password succesfully reset' });
+    return res.status(200).json({ message: user });
   }
 }
