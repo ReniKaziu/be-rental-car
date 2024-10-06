@@ -47,7 +47,7 @@ export class AuthenticationService {
     const userRepository = getRepository(User);
     const user = await userRepository.findOne({
       where: { phone: validatePhoneNumber(phone).phoneNumber, confirmationCode: code },
-      select: ['id', 'confirmationCodeExpiration', 'status']
+      select: ['id', 'confirmationCodeExpiration', 'status', 'confirmationCode']
     });
 
     if (!user) {
@@ -59,6 +59,8 @@ export class AuthenticationService {
     }
 
     user.status = UserStatus.ACTIVE;
+    user.confirmationCodeExpiration = null;
+    user.confirmationCode = null;
     return userRepository.save(user);
   }
 
