@@ -141,4 +141,21 @@ export class AuthenticationMiddleware {
       return res.status(400).json({ message: result.error.message, error: result.error });
     }
   }
+
+  public static resendCode(req: Request, res: Response, next: NextFunction) {
+    const resendCodeBody = Joi.object().keys({
+      phone: Joi.string().required().custom(AuthenticationMiddleware.validatePhoneNumber).messages({
+        'phone.invalid': 'Invalid phone number'
+      }),
+      codeType: Joi.string().valid('confirmationCode', 'resetPasswordCode').required()
+    });
+
+    const result = resendCodeBody.validate(req.body, { abortEarly: false });
+
+    if (!result.error) {
+      next();
+    } else {
+      return res.status(400).json({ message: result.error.message, error: result.error });
+    }
+  }
 }

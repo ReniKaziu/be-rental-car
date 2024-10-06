@@ -47,7 +47,23 @@ export class AuthenticationService {
     const userRepository = getRepository(User);
     const user = await userRepository.findOne({
       where: { phone: validatePhoneNumber(phone).phoneNumber, confirmationCode: code },
-      select: ['id', 'confirmationCodeExpiration', 'status', 'confirmationCode']
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'displayName',
+        'city',
+        'state',
+        'role',
+        'settings',
+        'licenseNumber',
+        'birthday',
+        'phone',
+        'password',
+        'confirmationCode',
+        'confirmationCodeExpiration'
+      ]
     });
 
     if (!user) {
@@ -61,28 +77,46 @@ export class AuthenticationService {
     user.status = UserStatus.ACTIVE;
     user.confirmationCodeExpiration = null;
     user.confirmationCode = null;
-    return userRepository.save(user);
+    await userRepository.update(
+      { id: user.id },
+      { status: user.status, confirmationCode: null, confirmationCodeExpiration: null }
+    );
+
+    delete user.password;
+    delete user.confirmationCode;
+    delete user.confirmationCodeExpiration;
+
+    return {
+      user,
+      accessToken: jwt.sign({ ...user }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_LIFETIME }),
+      refreshToken: jwt.sign({ ...user }, process.env.REFRESH_TOKEN_SECRET, {
+        expiresIn: process.env.REFRESH_TOKEN_LIFETIME
+      })
+    };
   }
 
   public static async forgotPassword({ phone }: { phone: string }) {
     const userRepository = getRepository(User);
     const user = await userRepository.findOne({
-      where: { phone: validatePhoneNumber(phone).phoneNumber },
-      select: ['resetPasswordCode', 'resetPasswordCodeExpiration']
+      select: ['id', 'resetPasswordCode', 'resetPasswordCodeExpiration'],
+      where: { phone: validatePhoneNumber(phone).phoneNumber }
     });
 
     if (!user) {
       throw new CustomError(401, 'User with this phone number does not exist');
     }
 
-    const resetPasswordCode = crypto.randomInt(10000, 99999);
-
-    user.resetPasswordCode = resetPasswordCode;
+    user.resetPasswordCode = crypto.randomInt(10000, 99999);
     user.resetPasswordCodeExpiration = Date.now() + 60 * 1000 * 10;
 
-    return userRepository.save(user);
+    await userRepository.update(
+      { id: user.id },
+      { resetPasswordCode: user.resetPasswordCode, resetPasswordCodeExpiration: user.resetPasswordCodeExpiration }
+    );
 
     // this.sendConfirmationCode(phone, resetPasswordCode, user);
+
+    return user;
   }
 
   private static async sendConfirmationCode(phone: string, confirmationCode: number, user: User) {
@@ -156,6 +190,7 @@ export class AuthenticationService {
     }
     delete user.password;
     return {
+      user,
       accessToken: jwt.sign({ ...user }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_LIFETIME }),
       refreshToken: jwt.sign({ ...user }, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: process.env.REFRESH_TOKEN_LIFETIME
@@ -198,23 +233,52 @@ export class AuthenticationService {
     }
 
     if (user.resetPasswordCodeExpiration < Date.now()) {
-      throw new CustomError(401, 'Confirmation code expired');
+      throw new CustomError(401, 'Reset password code expired');
     }
 
     user.password = await this.hashPassword(password);
     user.resetPasswordCode = null;
     user.resetPasswordCodeExpiration = null;
-    await userRepository.save(user);
+    await userRepository.update(
+      { id: user.id },
+      { password: user.password, resetPasswordCode: null, resetPasswordCodeExpiration: null }
+    );
 
     delete user.password;
     delete user.resetPasswordCode;
     delete user.resetPasswordCodeExpiration;
 
     return {
+      user,
       accessToken: jwt.sign({ ...user }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_LIFETIME }),
       refreshToken: jwt.sign({ ...user }, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: process.env.REFRESH_TOKEN_LIFETIME
       })
     };
+  }
+
+  public static async resendCode({
+    phone,
+    codeType
+  }: {
+    phone: string;
+    codeType: 'confirmationCode' | 'resetPasswordCode';
+  }) {
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({
+      where: { phone: validatePhoneNumber(phone).phoneNumber },
+      select: ['id']
+    });
+
+    if (!user) {
+      throw new CustomError(401, 'User with this phone number does not exist');
+    }
+
+    const code = crypto.randomInt(10000, 99999);
+    const codeExpiration = Date.now() + 60 * 1000 * 10;
+
+    await userRepository.update({ id: user.id }, { [codeType]: code, [`${codeType}Expiration`]: codeExpiration });
+
+    // await this.sendConfirmationCode(phone, code, user);
   }
 }

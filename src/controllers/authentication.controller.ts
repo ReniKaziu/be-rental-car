@@ -16,17 +16,17 @@ export class AuthenticationController {
   @Post('/login')
   @UseBefore(AuthenticationMiddleware.login)
   public async login(@Body() payload: { phone: string; password: string }, @Res() res: Response) {
-    const message = await AuthenticationService.login(payload);
+    const user = await AuthenticationService.login(payload);
 
-    return res.status(200).json({ message });
+    return res.status(200).json(user);
   }
 
   @Post('/confirm')
   @UseBefore(AuthenticationMiddleware.confirm)
   public async confirm(@Body() payload: { phone: string; code: number }, @Res() res: Response) {
-    await AuthenticationService.confirm(payload);
+    const user = await AuthenticationService.confirm(payload);
 
-    return res.status(200).json({ message: 'User confirmed successfully' });
+    return res.status(200).json(user);
   }
 
   @Post('/forgot-password')
@@ -34,7 +34,7 @@ export class AuthenticationController {
   public async forgotPassword(@Body() payload: { phone: string }, @Res() res: Response) {
     const user = await AuthenticationService.forgotPassword(payload);
 
-    return res.status(200).json({ message: user });
+    return res.status(200).json(user);
   }
 
   @Post('/reset-password')
@@ -45,6 +45,17 @@ export class AuthenticationController {
   ) {
     const user = await AuthenticationService.resetPassword(payload);
 
-    return res.status(200).json({ message: user });
+    return res.status(200).json(user);
+  }
+
+  @Post('/resend-code')
+  @UseBefore(AuthenticationMiddleware.resendCode)
+  public async resendCode(
+    @Body() payload: { phone: string; codeType: 'confirmationCode' | 'resetPasswordCode' },
+    @Res() res: Response
+  ) {
+    await AuthenticationService.resendCode(payload);
+
+    return res.status(200).json({ message: `Code sent: ${payload.codeType}` });
   }
 }

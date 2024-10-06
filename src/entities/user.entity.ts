@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Reservation } from './reservation.entity';
 
@@ -49,6 +49,7 @@ export class User extends Common {
   public email: string;
 
   @Column()
+  @Index({ unique: true })
   public phone: string;
 
   @Column()
