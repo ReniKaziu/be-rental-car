@@ -2,22 +2,22 @@ import { Request } from 'express';
 import { User, UserStatus } from '../entities/user.entity';
 import { getRepository } from 'typeorm';
 import crypto = require('crypto');
-import { phone } from 'phone';
 import twilio from 'twilio';
 import { Log, LogLevel } from '../entities/log.entity';
 import { CustomError } from '../common/utilities/CustomError';
 import { promisify } from 'util';
 import * as jwt from 'jsonwebtoken';
+import { getPhoneNumber } from '../common/utilities/helper';
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 
 export class AuthenticationService {
   public static async register(req: Request) {
-    const { password, phone: phoneNumber, firstName, lastName } = req.body;
+    const { password, phone, firstName, lastName } = req.body;
     const userRepository = getRepository(User);
 
-    const formattedPhoneNumber = phone(phoneNumber).phoneNumber;
-    const existingUser = await userRepository.findOne({ where: { phone: formattedPhoneNumber }, select: ['id'] });
+    const formattedPhoneNumber = getPhoneNumber(phone);
+    const existingUser = await userRepository.count({ where: { phone: formattedPhoneNumber } });
 
     if (existingUser) {
       throw new CustomError(409, 'User with this phone number already exists');
@@ -40,7 +40,75 @@ export class AuthenticationService {
 
     newUser = await userRepository.save(newUser);
 
-    // this.sendConfirmationCode(phoneNumber, confirmationCode, newUser);
+    // this.sendConfirmationCode(formattedPhoneNumber, confirmationCode, newUser);
+  }
+
+  public static async confirm({
+    phone,
+    code,
+    isResetPassword
+  }: {
+    phone: string;
+    code: number;
+    isResetPassword?: boolean;
+  }) {
+    const field = isResetPassword ? 'resetPasswordCode' : 'confirmationCode';
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({
+      where: { phone: getPhoneNumber(phone), [field]: code },
+      select: ['id', 'confirmationCodeExpiration', 'status', 'resetPasswordCodeExpiration']
+    });
+
+    if (!user) {
+      throw new CustomError(401, 'Invalid credentials');
+    }
+
+    if (isResetPassword) {
+      if (user.resetPasswordCodeExpiration < Date.now()) {
+        throw new CustomError(401, 'Reset password code expired');
+      }
+
+      user.resetPasswordCode = null;
+      user.resetPasswordCodeExpiration = null;
+      await userRepository.save(user);
+    }
+
+    if (user.confirmationCodeExpiration < Date.now()) {
+      throw new CustomError(401, 'Confirmation code expired');
+    }
+
+    user.status = UserStatus.ACTIVE;
+    return await userRepository.save(user);
+  }
+
+  public static async forgotPassword({ phone }: { phone: string }) {
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({ where: { phone: getPhoneNumber(phone) } });
+
+    if (!user) {
+      throw new CustomError(401, 'User with this phone number does not exist');
+    }
+
+    const resetPasswordCode = crypto.randomInt(10000, 99999);
+
+    user.resetPasswordCode = resetPasswordCode;
+    user.resetPasswordCodeExpiration = Date.now() + 60 * 1000 * 10;
+
+    return await userRepository.save(user);
+
+    // this.sendConfirmationCode(phone, resetPasswordCode, user);
+  }
+
+  public static async resetPassword({ phone, password }: { phone: string; password: string }) {
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({ where: { phone: getPhoneNumber(phone) } });
+
+    if (!user) {
+      throw new CustomError(401, 'User with this phone number does not exist');
+    }
+
+    user.password = await this.hashPassword(password);
+    return await userRepository.save(user);
   }
 
   private static async sendConfirmationCode(phone: string, confirmationCode: number, user: User) {
@@ -81,10 +149,10 @@ export class AuthenticationService {
     return `${salt}:${hashedPassword.toString('hex')}`;
   }
 
-  public static async login({ phone: phoneNumber, password }: { phone: string; password: string }) {
+  public static async login({ phone, password }: { phone: string; password: string }) {
     const userRepository = getRepository(User);
     const user = await userRepository.findOne({
-      where: { phone: phone(phoneNumber).phoneNumber, status: UserStatus.ACTIVE },
+      where: { phone: getPhoneNumber(phone), status: UserStatus.ACTIVE },
       select: [
         'id',
         'firstName',

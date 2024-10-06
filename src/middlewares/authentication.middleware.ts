@@ -13,19 +13,9 @@ export class AuthenticationMiddleware {
       state: Joi.string().optional(),
       city: Joi.string().optional(),
       licenseNumber: Joi.string().optional(),
-      phone: Joi.string()
-        .required()
-        .custom((value, helpers) => {
-          const phoneNumber = phone(value);
-
-          if (!phoneNumber.isValid) {
-            return helpers.error('phone.invalid');
-          }
-          return value;
-        })
-        .messages({
-          'phone.invalid': 'Invalid phone number'
-        })
+      phone: Joi.string().required().custom(AuthenticationMiddleware.validatePhoneNumber).messages({
+        'phone.invalid': 'Invalid phone number'
+      })
     });
 
     const result = registerBody.validate(req.body, { abortEarly: false });
@@ -44,6 +34,57 @@ export class AuthenticationMiddleware {
     });
 
     const result = loginBody.validate(req.body, { abortEarly: false });
+
+    if (!result.error) {
+      next();
+    } else {
+      return res.status(400).json({ message: result.error.message, error: result.error });
+    }
+  }
+
+  public static confirm(req: Request, res: Response, next: NextFunction) {
+    const confirmBody = Joi.object().keys({
+      phone: Joi.string().required().custom(AuthenticationMiddleware.validatePhoneNumber).messages({
+        'phone.invalid': 'Invalid phone number'
+      }),
+      code: Joi.number().required(),
+      isResetPassword: Joi.boolean().optional()
+    });
+
+    const result = confirmBody.validate(req.body, { abortEarly: false });
+
+    if (!result.error) {
+      next();
+    } else {
+      return res.status(400).json({ message: result.error.message, error: result.error });
+    }
+  }
+
+  public static forgotPassword(req: Request, res: Response, next: NextFunction) {
+    const forgotPasswordBody = Joi.object().keys({
+      phone: Joi.string().required().custom(AuthenticationMiddleware.validatePhoneNumber).messages({
+        'phone.invalid': 'Invalid phone number'
+      })
+    });
+
+    const result = forgotPasswordBody.validate(req.body, { abortEarly: false });
+
+    if (!result.error) {
+      next();
+    } else {
+      return res.status(400).json({ message: result.error.message, error: result.error });
+    }
+  }
+
+  public static resetPassword(req: Request, res: Response, next: NextFunction) {
+    const resetPasswordBody = Joi.object().keys({
+      phone: Joi.string().required().custom(AuthenticationMiddleware.validatePhoneNumber).messages({
+        'phone.invalid': 'Invalid phone number'
+      }),
+      password: Joi.string().required().min(8).max(20)
+    });
+
+    const result = resetPasswordBody.validate(req.body, { abortEarly: false });
 
     if (!result.error) {
       next();
@@ -92,5 +133,14 @@ export class AuthenticationMiddleware {
 
       return res.status(403).json({ message: 'Invalid token' });
     }
+  }
+
+  private static validatePhoneNumber(value: string, helpers: Joi.CustomHelpers) {
+    const phoneNumber = phone(value);
+
+    if (!phoneNumber.isValid) {
+      return helpers.error('phone.invalid');
+    }
+    return value;
   }
 }

@@ -76,7 +76,7 @@ export class User extends Common {
   @Column({
     nullable: true
   })
-  public resetPasswordCode: string;
+  public resetPasswordCode: number;
 
   @Column({
     type: 'bigint',
