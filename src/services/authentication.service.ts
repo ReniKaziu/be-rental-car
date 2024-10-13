@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { User, UserStatus } from '../entities/user.entity';
 import { getRepository } from 'typeorm';
 import crypto = require('crypto');
@@ -24,6 +24,7 @@ export class AuthenticationService {
     }
 
     let user = new User();
+
     const confirmationCode = crypto.randomInt(10000, 99999);
 
     user = {
@@ -38,9 +39,38 @@ export class AuthenticationService {
 
     let newUser = userRepository.create(user);
 
-    newUser = await userRepository.save(newUser);
+    newUser = await userRepository.save(newUser, { reload: false });
 
-    // this.sendConfirmationCode(formattedPhoneNumber, confirmationCode, newUser);
+    setImmediate(() => {
+      this.sendConfirmationCode(formattedPhoneNumber, confirmationCode, newUser);
+    });
+  }
+
+  private static async sendConfirmationCode(phone: string, confirmationCode: number, user: User) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const client = twilio(accountSid, authToken);
+
+    try {
+      await client.messages.create({
+        body: `Your confirmation code is: ${confirmationCode}`,
+        from: '+17099073867',
+        to: phone
+      });
+    } catch (error) {
+      const log = new Log();
+
+      log.level = LogLevel.ERROR;
+      log.message = error.message;
+      log.source = this.sendConfirmationCode.name;
+      log.stackTrace = error.stack;
+      log.userId = user.id;
+
+      const logRepository = getRepository(Log);
+      await logRepository.save(log, { reload: false });
+
+      console.log({ error });
+    }
   }
 
   public static async confirm({ phone, code }: { phone: string; code: number }) {
@@ -117,33 +147,6 @@ export class AuthenticationService {
     // this.sendConfirmationCode(phone, resetPasswordCode, user);
 
     return user;
-  }
-
-  private static async sendConfirmationCode(phone: string, confirmationCode: number, user: User) {
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const client = twilio(accountSid, authToken);
-
-    try {
-      return await client.messages.create({
-        body: `Your confirmation code is: ${confirmationCode}`,
-        from: '+17099073867',
-        to: phone
-      });
-    } catch (error) {
-      const log = new Log();
-
-      log.level = LogLevel.ERROR;
-      log.message = error.message;
-      log.source = this.sendConfirmationCode.name;
-      log.stackTrace = error.stack;
-      log.userId = user.id;
-
-      const logRepository = getRepository(Log);
-      logRepository.save(log);
-
-      console.log({ error });
-    }
   }
 
   private static async hashPassword(password: string, salt?: string) {
@@ -279,6 +282,6 @@ export class AuthenticationService {
 
     await userRepository.update({ id: user.id }, { [codeType]: code, [`${codeType}Expiration`]: codeExpiration });
 
-    // await this.sendConfirmationCode(phone, code, user);
+    await this.sendConfirmationCode(phone, code, user);
   }
 }

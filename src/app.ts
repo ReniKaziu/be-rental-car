@@ -9,17 +9,42 @@ import path from 'path';
 import express from 'express';
 const chalk = require('chalk');
 const figlet = require('figlet');
+import { slowDown } from 'express-slow-down';
 
 var app = express();
 
+const limiter = slowDown({
+  windowMs: 60 * 1000, // 15 minutes
+  delayAfter: 120, // Allow 5 requests per 15 minutes.
+  delayMs: (hits) => hits * hits * 400 // Add 100 ms of delay to every request after the 5th one.
+});
+
+const sendCodeRouteLimiter = slowDown({
+  windowMs: 10 * 1000, // 15 minutes
+  delayAfter: 3, // Allow 5 requests per 15 minutes.
+  delayMs: (hits) => hits * hits * 500 // Add 100 ms of delay to every request after the 5th one.
+});
+
+app.use(cors());
+app.use(bodyParser.json({ limit: '200mb' }));
+app.use(bodyParser.urlencoded({ limit: '200mb', extended: true }));
+app.use(limiter);
+
+useExpressServer(app, {
+  controllers: [path.join(__dirname + '/controllers/*.controller.js')],
+  defaultErrorHandler: false,
+  routePrefix: '/api',
+  middlewares: [HttpErrorHandler],
+  currentUserChecker: async (action: Action) => {
+    return action.request['user'];
+  }
+});
+
+const port = process.env.PORT || 4500;
+
 createConnection()
   .then(async () => {
-    app.use(cors());
-    app.use(bodyParser.json({ limit: '200mb' }));
-    app.use(bodyParser.urlencoded({ limit: '200mb', extended: true }));
-
-    // get api version
-    app.get(process.env.URL + '/version', (req, res) => {
+    app.get('/api/version', (req, res) => {
       res.status(200).send({
         success: true,
         message: 'the api call is successfull',
@@ -28,18 +53,6 @@ createConnection()
         }
       });
     });
-
-    useExpressServer(app, {
-      controllers: [path.join(__dirname + '/controllers/*.controller.js')],
-      defaultErrorHandler: false,
-      routePrefix: '/api',
-      middlewares: [HttpErrorHandler],
-      currentUserChecker: async (action: Action) => {
-        return action.request['user'];
-      }
-    });
-
-    const port = process.env.PORT || 4500;
 
     app.listen(port, () => {
       const message = figlet.textSync(' # Server Running #', {

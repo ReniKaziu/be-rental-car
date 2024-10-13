@@ -51,6 +51,7 @@
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-slow-down": "^2.0.3",
     "figlet": "^1.7.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^8.5.1",
