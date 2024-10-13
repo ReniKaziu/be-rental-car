@@ -3,6 +3,7 @@ import { Common } from '../common/entities/common';
 import { Timetable } from './timetable.entity';
 import { DayOff } from './day-off.entity';
 import { BusinessStatus } from './company.entity';
+import { Car } from './car.entity';
 
 @Entity('locations')
 export class Location extends Common {
@@ -12,7 +13,7 @@ export class Location extends Common {
   public name: string;
 
   @Column()
-  public number: string;
+  public phone: string;
 
   @Column({
     nullable: true
@@ -42,6 +43,9 @@ export class Location extends Common {
 
   @OneToMany(() => Timetable, (timetable) => timetable.location)
   public timetables: Timetable[];
+
+  @OneToMany(() => Car, (car) => car.location)
+  public cars: Car[];
 
   @OneToMany(() => DayOff, (dayOff) => dayOff.location)
   public dayOffs: DayOff[];

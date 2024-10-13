@@ -14,15 +14,15 @@ import { slowDown } from 'express-slow-down';
 var app = express();
 
 const limiter = slowDown({
-  windowMs: 60 * 1000, // 15 minutes
-  delayAfter: 120, // Allow 5 requests per 15 minutes.
-  delayMs: (hits) => hits * hits * 400 // Add 100 ms of delay to every request after the 5th one.
+  windowMs: 60 * 1000, // 1 minute
+  delayAfter: 80, // Allow 120 requests per 1 minute=.
+  delayMs: (hits) => hits * hits * 400 // Add (hits * hits * 400)ms of delay to every request after the 120th one.
 });
 
-const sendCodeRouteLimiter = slowDown({
-  windowMs: 10 * 1000, // 15 minutes
-  delayAfter: 3, // Allow 5 requests per 15 minutes.
-  delayMs: (hits) => hits * hits * 500 // Add 100 ms of delay to every request after the 5th one.
+export const sendCodeRouteLimiter = slowDown({
+  windowMs: 5 * 60 * 1000,
+  delayAfter: 3,
+  delayMs: (hits) => hits * hits * 500
 });
 
 app.use(cors());

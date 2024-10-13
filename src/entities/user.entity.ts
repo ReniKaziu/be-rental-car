@@ -1,6 +1,7 @@
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Reservation } from './reservation.entity';
+import { Company } from './company.entity';
 
 export enum UserStatus {
   ACTIVE = 'active',
@@ -114,4 +115,7 @@ export class User extends Common {
 
   @OneToMany(() => Reservation, (reservation) => reservation.user)
   public reservations: Reservation[];
+
+  @OneToMany(() => Company, (company) => company.user)
+  public companies: Company[];
 }

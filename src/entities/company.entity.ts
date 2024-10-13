@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { Common } from '../common/entities/common';
+import { User } from './user.entity';
 
 export enum BusinessStatus {
   ACTIVE = 'active',
@@ -12,26 +13,12 @@ export class Company extends Common {
   public name: string;
 
   @Column()
-  public number: string;
+  public phone: string;
 
   @Column({
     nullable: true
   })
   public city: string;
-
-  @Column({
-    type: 'decimal',
-    precision: 10,
-    scale: 8
-  })
-  public latitude: number;
-
-  @Column({
-    type: 'decimal',
-    precision: 11,
-    scale: 8
-  })
-  public longitude: number;
 
   @Column({
     default: BusinessStatus.ACTIVE,
@@ -44,4 +31,10 @@ export class Company extends Common {
     default: false
   })
   public isShuttle: boolean;
+
+  @ManyToOne(() => User, (user) => user.companies)
+  public user: User;
+
+  @Column()
+  public userId: number;
 }

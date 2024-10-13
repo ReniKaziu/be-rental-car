@@ -101,7 +101,7 @@ export class AuthenticationMiddleware {
     }
   }
 
-  private static validatePhoneNumber(value: string, helpers: Joi.CustomHelpers) {
+  public static validatePhoneNumber(value: string, helpers: Joi.CustomHelpers) {
     const phoneNumber = phone(value);
 
     if (!phoneNumber.isValid) {

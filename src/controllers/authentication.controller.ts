@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Body, Controller, Post, Req, Res, UseBefore } from 'routing-controllers';
 import { AuthenticationService } from '../services/authentication.service';
 import { AuthenticationMiddleware } from '../middlewares/authentication.middleware';
+import { sendCodeRouteLimiter } from '../app';
 
 @Controller('/auth')
 export class AuthenticationController {
@@ -49,7 +50,7 @@ export class AuthenticationController {
   }
 
   @Post('/resend-code')
-  @UseBefore(AuthenticationMiddleware.resendCode)
+  @UseBefore(sendCodeRouteLimiter, AuthenticationMiddleware.resendCode)
   public async resendCode(
     @Body() payload: { phone: string; codeType: 'confirmationCode' | 'resetPasswordCode' },
     @Res() res: Response

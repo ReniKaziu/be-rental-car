@@ -41,9 +41,9 @@ export class AuthenticationService {
 
     newUser = await userRepository.save(newUser, { reload: false });
 
-    setImmediate(() => {
-      this.sendConfirmationCode(formattedPhoneNumber, confirmationCode, newUser);
-    });
+    // setImmediate(() => {
+    //   this.sendConfirmationCode(formattedPhoneNumber, confirmationCode, newUser);
+    // });
   }
 
   private static async sendConfirmationCode(phone: string, confirmationCode: number, user: User) {
@@ -282,6 +282,6 @@ export class AuthenticationService {
 
     await userRepository.update({ id: user.id }, { [codeType]: code, [`${codeType}Expiration`]: codeExpiration });
 
-    await this.sendConfirmationCode(phone, code, user);
+    // await this.sendConfirmationCode(phone, code, user);
   }
 }
