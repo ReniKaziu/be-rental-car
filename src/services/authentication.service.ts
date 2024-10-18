@@ -1,13 +1,13 @@
-import { Request, Response } from 'express';
-import { User, UserStatus } from '../entities/user.entity';
+import { Request } from 'express';
+import { User, UserRole, UserStatus } from '../entities/user.entity';
 import { getRepository } from 'typeorm';
-import crypto = require('crypto');
-import twilio from 'twilio';
 import { Log, LogLevel } from '../entities/log.entity';
 import { CustomError } from '../common/utilities/CustomError';
 import { promisify } from 'util';
-import * as jwt from 'jsonwebtoken';
 import { phone as validatePhoneNumber } from 'phone';
+import twilio from 'twilio';
+import * as jwt from 'jsonwebtoken';
+import crypto = require('crypto');
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 
@@ -162,24 +162,30 @@ export class AuthenticationService {
 
   public static async login({ phone, password }: { phone: string; password: string }) {
     const userRepository = getRepository(User);
-    const user = await userRepository.findOne({
-      where: { phone: validatePhoneNumber(phone).phoneNumber, status: UserStatus.ACTIVE },
-      select: [
-        'id',
-        'firstName',
-        'lastName',
-        'email',
-        'displayName',
-        'city',
-        'state',
-        'role',
-        'settings',
-        'licenseNumber',
-        'birthday',
-        'phone',
-        'password'
-      ]
-    });
+    const user = await userRepository
+      .createQueryBuilder('u')
+      .leftJoinAndSelect('u.companies', 'c')
+      .leftJoinAndSelect('c.locations', 'l')
+      .where('u.phone = :phone', { phone: validatePhoneNumber(phone).phoneNumber })
+      .andWhere('u.status = :status', { status: UserStatus.ACTIVE })
+      .select([
+        'u.id',
+        'u.firstName',
+        'u.lastName',
+        'u.email',
+        'u.displayName',
+        'u.city',
+        'u.state',
+        'u.role',
+        'u.settings',
+        'u.licenseNumber',
+        'u.birthday',
+        'u.phone',
+        'u.password',
+        'c.id',
+        'l.id'
+      ])
+      .getOne();
 
     if (!user) {
       throw new CustomError(401, 'Invalid credentials');
@@ -192,10 +198,27 @@ export class AuthenticationService {
       throw new CustomError(401, 'Invalid credentials');
     }
     delete user.password;
+    const companies = user.companies;
+    delete user.companies;
+
+    let jwtPayload: any = user;
+
+    if (user.role === UserRole.OWNER) {
+      if (companies.length) {
+        jwtPayload = {
+          ...jwtPayload,
+          companyId: companies[0].id,
+          locationsIds: companies[0].locations.map((l) => l.id)
+        };
+      }
+    }
+
     return {
       user,
-      accessToken: jwt.sign({ ...user }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_LIFETIME }),
-      refreshToken: jwt.sign({ ...user }, process.env.REFRESH_TOKEN_SECRET, {
+      accessToken: jwt.sign({ ...jwtPayload }, process.env.JWT_SECRET, {
+        expiresIn: process.env.ACCESS_TOKEN_LIFETIME
+      }),
+      refreshToken: jwt.sign({ ...jwtPayload }, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: process.env.REFRESH_TOKEN_LIFETIME
       })
     };

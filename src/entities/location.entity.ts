@@ -1,9 +1,10 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Timetable } from './timetable.entity';
 import { DayOff } from './day-off.entity';
-import { BusinessStatus } from './company.entity';
+import { Company } from './company.entity';
 import { Car } from './car.entity';
+import { BusinessStatus } from '../common/enums/shared.enums';
 
 @Entity('locations')
 export class Location extends Common {
@@ -49,4 +50,10 @@ export class Location extends Common {
 
   @OneToMany(() => DayOff, (dayOff) => dayOff.location)
   public dayOffs: DayOff[];
+
+  @ManyToOne(() => Company, (company) => company.locations)
+  public company: Company;
+
+  @Column()
+  public companyId: number;
 }

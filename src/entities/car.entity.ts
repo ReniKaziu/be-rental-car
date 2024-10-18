@@ -3,36 +3,7 @@ import { Common } from '../common/entities/common';
 import { CarService } from './car-service.entity';
 import { Reservation } from './reservation.entity';
 import { Location } from './location.entity';
-
-export enum CarType {
-  MICRO = 'micro',
-  SEDAN = 'sedan',
-  SUV = 'suv',
-  TRUCK = 'truck',
-  COUPE = 'coupe',
-  HATCHBACK = 'hatchback',
-  CABRIOLET = 'cabriolet',
-  MINIVAN = 'minivan',
-  WAGON = 'wagon',
-  PICKUP = 'pickup',
-  CROSSOVER = 'crossover',
-  SPORTS_CAR = 'sports car',
-  LIMO = 'limo',
-  OFF_ROAD = 'off road'
-}
-
-export enum FuelType {
-  PETROL = 'petrol',
-  DIESEL = 'diesel',
-  ELECTRIC = 'electric',
-  HYBRID = 'hybrid'
-}
-
-export enum GearType {
-  AUTOMATIC = 'automatic',
-  MANUAL = 'manual',
-  OTHER = 'other'
-}
+import { CarType, FuelType, GearType } from '../common/enums/shared.enums';
 
 @Entity('cars')
 export class Car extends Common {

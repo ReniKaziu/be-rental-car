@@ -1,6 +1,6 @@
 import { BeforeInsert, Column, Entity, Unique } from 'typeorm';
 import { Common } from '../common/entities/common';
-import { CarType, FuelType, GearType } from './car.entity';
+import { CarType, FuelType, GearType } from '../common/enums/shared.enums';
 const crypto = require('crypto');
 
 @Entity('filters')

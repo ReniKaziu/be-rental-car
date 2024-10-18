@@ -1,16 +1,7 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Location } from './location.entity';
-
-enum Day {
-  SUNDAY = 0,
-  MONDAY = 1,
-  TUESDAY = 2,
-  WEDNESDAY = 3,
-  THURSDAY = 4,
-  FRIDAY = 5,
-  SATURDAY = 6
-}
+import { Day } from '../common/enums/shared.enums';
 
 @Entity('timetables')
 export class Timetable extends Common {

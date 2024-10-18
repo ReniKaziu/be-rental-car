@@ -2,16 +2,7 @@ import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Reservation } from './reservation.entity';
 import { Company } from './company.entity';
-
-export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive'
-}
-
-export enum UserRole {
-  CLIENT = 'client',
-  OWNER = 'owner'
-}
+import { UserRole, UserStatus } from '../common/enums/shared.enums';
 
 export type CurrentUser = {
   id: number;

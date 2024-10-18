@@ -1,14 +1,8 @@
-import { Column, Entity, ManyToMany, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { User } from './user.entity';
 import { Car } from './car.entity';
-
-enum ReservationStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  CANCELED = 'CANCELED'
-}
+import { ReservationStatus } from '../common/enums/shared.enums';
 
 @Entity('reservations')
 export class Reservation extends Common {

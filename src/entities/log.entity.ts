@@ -1,10 +1,6 @@
 import { Entity, Column } from 'typeorm';
 import { Common } from '../common/entities/common';
-
-export enum LogLevel {
-  ERROR = 'error',
-  INFO = 'info'
-}
+import { LogLevel } from '../common/enums/shared.enums';
 
 @Entity('logs')
 export class Log extends Common {

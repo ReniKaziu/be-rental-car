@@ -1,11 +1,8 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { User } from './user.entity';
-
-export enum BusinessStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive'
-}
+import { Location } from './location.entity';
+import { BusinessStatus } from '../common/enums/shared.enums';
 
 @Entity('companies')
 export class Company extends Common {
@@ -37,4 +34,7 @@ export class Company extends Common {
 
   @Column()
   public userId: number;
+
+  @OneToMany(() => Location, (location) => location.company)
+  public locations: Location[];
 }

@@ -158,4 +158,17 @@ export class AuthenticationMiddleware {
       return res.status(400).json({ message: result.error.message, error: result.error });
     }
   }
+
+  public static isCompanyAuthorized(req: Request, res: Response, next: NextFunction) {
+    const body = req.body;
+    const user = req['user'];
+
+    if (body && body.locationId) {
+      if (user.locationsIds.includes(body.locationId)) {
+        return next();
+      }
+    }
+
+    return res.status(403).json({ message: 'You are not allowed to perform this action' });
+  }
 }
