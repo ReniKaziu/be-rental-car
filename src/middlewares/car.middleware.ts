@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
-import { CarType, FuelType, GearType } from '../entities/car.entity';
+import { CarType, FuelType, GearType } from '../common/enums/shared.enums';
 
 export class CarMiddleware {
   public static create(req: Request, res: Response, next: NextFunction) {

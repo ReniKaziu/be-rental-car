@@ -164,7 +164,7 @@ export class AuthenticationMiddleware {
     const user = req['user'];
 
     if (body && body.locationId) {
-      if (user.locationsIds.includes(body.locationId)) {
+      if (user?.locationsIds?.includes(body.locationId)) {
         return next();
       }
     }

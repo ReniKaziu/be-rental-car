@@ -1,13 +1,14 @@
 import { Request } from 'express';
-import { User, UserRole, UserStatus } from '../entities/user.entity';
+import { User } from '../entities/user.entity';
 import { getRepository } from 'typeorm';
-import { Log, LogLevel } from '../entities/log.entity';
+import { Log } from '../entities/log.entity';
 import { CustomError } from '../common/utilities/CustomError';
 import { promisify } from 'util';
 import { phone as validatePhoneNumber } from 'phone';
 import twilio from 'twilio';
 import * as jwt from 'jsonwebtoken';
 import crypto = require('crypto');
+import { LogLevel, UserRole, UserStatus } from '../common/enums/shared.enums';
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 

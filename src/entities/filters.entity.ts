@@ -46,7 +46,7 @@ export class Filter extends Common {
   public doors: number;
 
   @BeforeInsert()
-  beforeInsert() {
+  generateHash() {
     this.hash = crypto
       .createHash('sha256')
       .update(

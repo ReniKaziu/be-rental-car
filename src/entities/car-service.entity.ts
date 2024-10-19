@@ -2,8 +2,8 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { Common } from '../common/entities/common';
 import { Car } from './car.entity';
 
-@Entity('car-services')
-export class CarService extends Common {
+@Entity('car-maintenance')
+export class CarMaintenance extends Common {
   @Column({
     type: 'text',
     nullable: true

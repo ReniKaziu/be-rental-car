@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
-import { CarService } from './car-service.entity';
+import { CarMaintenance } from './car-service.entity';
 import { Reservation } from './reservation.entity';
 import { Location } from './location.entity';
 import { CarType, FuelType, GearType } from '../common/enums/shared.enums';
@@ -107,8 +107,8 @@ export class Car extends Common {
   @Column()
   public locationId: number;
 
-  @OneToMany(() => CarService, (carService) => carService.car)
-  public services: CarService[];
+  @OneToMany(() => CarMaintenance, (carMaintenance) => carMaintenance.car)
+  public services: CarMaintenance[];
 
   @OneToMany(() => Reservation, (reservation) => reservation.car)
   public reservations: Reservation[];
