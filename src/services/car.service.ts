@@ -87,6 +87,6 @@ export class CarService {
   }
 
   private static trimLicensePlate(licensePlate: string) {
-    return licensePlate.replace(/\s/g, '').toUpperCase();
+    return licensePlate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   }
 }

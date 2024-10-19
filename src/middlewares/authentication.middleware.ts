@@ -2,6 +2,7 @@ import { NextFunction, Response, Request } from 'express';
 import Joi from 'joi';
 import { phone } from 'phone';
 import * as jwt from 'jsonwebtoken';
+import { UserRole } from '../common/enums/shared.enums';
 
 export class AuthenticationMiddleware {
   public static register(req: Request, res: Response, next: NextFunction) {
@@ -29,7 +30,9 @@ export class AuthenticationMiddleware {
 
   public static login(req: Request, res: Response, next: NextFunction) {
     const loginBody = Joi.object().keys({
-      phone: Joi.string().required(),
+      phone: Joi.string().required().custom(AuthenticationMiddleware.validatePhoneNumber).messages({
+        'phone.invalid': 'Invalid phone number'
+      }),
       password: Joi.string().required()
     });
 
@@ -128,7 +131,9 @@ export class AuthenticationMiddleware {
 
   public static resetPassword(req: Request, res: Response, next: NextFunction) {
     const resetPasswordBody = Joi.object().keys({
-      userId: Joi.number().required(),
+      phone: Joi.string().required().custom(AuthenticationMiddleware.validatePhoneNumber).messages({
+        'phone.invalid': 'Invalid phone number'
+      }),
       code: Joi.number().required(),
       password: Joi.string().required().min(8).max(20)
     });
@@ -161,12 +166,29 @@ export class AuthenticationMiddleware {
 
   public static isCompanyAuthorized(req: Request, res: Response, next: NextFunction) {
     const body = req.body;
+    const params = req.params;
     const user = req['user'];
 
     if (body && body.locationId) {
       if (user?.locationsIds?.includes(body.locationId)) {
         return next();
       }
+    }
+
+    if (params && params.companyId) {
+      if (user?.companyId === +params.companyId) {
+        return next();
+      }
+    }
+
+    return res.status(403).json({ message: 'You are not allowed to perform this action' });
+  }
+
+  public static isCompany(req: Request, res: Response, next: NextFunction) {
+    const user = req['user'];
+
+    if (user?.role === UserRole.OWNER) {
+      return next();
     }
 
     return res.status(403).json({ message: 'You are not allowed to perform this action' });

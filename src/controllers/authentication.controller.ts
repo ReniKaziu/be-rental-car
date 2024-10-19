@@ -40,10 +40,7 @@ export class AuthenticationController {
 
   @Post('/reset-password')
   @UseBefore(AuthenticationMiddleware.resetPassword)
-  public async resetPassword(
-    @Body() payload: { userId: string; code: string; password: string },
-    @Res() res: Response
-  ) {
+  public async resetPassword(@Body() payload: { phone: string; code: string; password: string }, @Res() res: Response) {
     const user = await AuthenticationService.resetPassword(payload);
 
     return res.status(200).json(user);

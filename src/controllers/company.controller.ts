@@ -14,4 +14,12 @@ export class CompanyController {
 
     return res.status(201).json({ message: 'Company created' });
   }
+
+  @Post('/:companyId/cars')
+  @UseBefore(AuthenticationMiddleware.verifyToken, AuthenticationMiddleware.isCompanyAuthorized)
+  public async getCompanyCars(@Req() req: Request, @Res() res: Response) {
+    const cars = await CompanyService.getCompanyCars(req);
+
+    return res.status(200).json(cars);
+  }
 }

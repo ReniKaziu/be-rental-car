@@ -1,4 +1,4 @@
-import { Controller, Post, Req, Res, UseBefore } from 'routing-controllers';
+import { Controller, Get, Post, Req, Res, UseBefore } from 'routing-controllers';
 import { AuthenticationMiddleware } from '../middlewares/authentication.middleware';
 import { Request, Response } from 'express';
 import { CarService } from '../services/car.service';

@@ -98,11 +98,11 @@ export class AuthenticationService {
     });
 
     if (!user) {
-      throw new CustomError(401, 'Invalid credentials');
+      throw new CustomError(404, 'Invalid credentials');
     }
 
     if (user.confirmationCodeExpiration < Date.now()) {
-      throw new CustomError(401, 'Confirmation code expired');
+      throw new CustomError(404, 'Confirmation code expired');
     }
 
     user.status = UserStatus.ACTIVE;
@@ -134,7 +134,7 @@ export class AuthenticationService {
     });
 
     if (!user) {
-      throw new CustomError(401, 'User with this phone number does not exist');
+      throw new CustomError(404, 'User with this phone number does not exist');
     }
 
     user.resetPasswordCode = crypto.randomInt(10000, 99999);
@@ -189,14 +189,14 @@ export class AuthenticationService {
       .getOne();
 
     if (!user) {
-      throw new CustomError(401, 'Invalid credentials');
+      throw new CustomError(404, 'Invalid credentials');
     }
 
     const [salt, dbPassword] = user.password.split(':');
     password = (await this.hashPassword(password, salt)).split(':')[1];
 
     if (dbPassword !== password) {
-      throw new CustomError(401, 'Invalid credentials');
+      throw new CustomError(404, 'Invalid credentials');
     }
     delete user.password;
     const companies = user.companies;
@@ -225,18 +225,10 @@ export class AuthenticationService {
     };
   }
 
-  public static async resetPassword({
-    userId: id,
-    code,
-    password
-  }: {
-    userId: string;
-    code: string;
-    password: string;
-  }) {
+  public static async resetPassword({ phone, code, password }: { phone: string; code: string; password: string }) {
     const userRepository = getRepository(User);
     const user = await userRepository.findOne({
-      where: { status: UserStatus.ACTIVE, resetPasswordCode: code, id },
+      where: { status: UserStatus.ACTIVE, resetPasswordCode: code, phone: validatePhoneNumber(phone).phoneNumber },
       select: [
         'id',
         'firstName',
@@ -256,11 +248,11 @@ export class AuthenticationService {
       ]
     });
     if (!user) {
-      throw new CustomError(401, 'User not found');
+      throw new CustomError(404, 'User not found');
     }
 
     if (user.resetPasswordCodeExpiration < Date.now()) {
-      throw new CustomError(401, 'Reset password code expired');
+      throw new CustomError(404, 'Reset password code expired');
     }
 
     user.password = await this.hashPassword(password);
@@ -298,7 +290,7 @@ export class AuthenticationService {
     });
 
     if (!user) {
-      throw new CustomError(401, 'User with this phone number does not exist');
+      throw new CustomError(404, 'User with this phone number does not exist');
     }
 
     const code = crypto.randomInt(10000, 99999);

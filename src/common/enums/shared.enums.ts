@@ -20,6 +20,12 @@ export enum CarType {
   OFF_ROAD = 'off road'
 }
 
+export enum CarSize {
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  LARGE = 'large'
+}
+
 export enum FuelType {
   PETROL = 'petrol',
   DIESEL = 'diesel',
@@ -64,3 +70,17 @@ export enum UserRole {
   CLIENT = 'client',
   OWNER = 'owner'
 }
+
+export const mappedCarSizes = {
+  [CarSize.SMALL]: [CarType.MICRO],
+  [CarSize.MEDIUM]: [CarType.SEDAN, CarType.COUPE, CarType.HATCHBACK, CarType.CABRIOLET, CarType.CROSSOVER],
+  [CarSize.LARGE]: [
+    CarType.SUV,
+    CarType.WAGON,
+    CarType.TRUCK,
+    CarType.PICKUP,
+    CarType.MINIVAN,
+    CarType.LIMO,
+    CarType.OFF_ROAD
+  ]
+};
