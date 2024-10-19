@@ -60,9 +60,8 @@ export class CarService {
 
       const existingFilter = await filtersRepository.count({ where: { hash: hashedPayload } });
 
-      const newFilter = new Filter();
-
       if (!existingFilter) {
+        const newFilter = new Filter();
         newFilter.make = createdCar.make;
         newFilter.model = createdCar.model;
         newFilter.engine = createdCar.engine;
