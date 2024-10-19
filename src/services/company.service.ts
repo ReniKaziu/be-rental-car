@@ -66,6 +66,23 @@ export class CompanyService {
       query.andWhere('c.type IN (:...types)', { types });
     }
 
+    if (req.body.sortBy && req.body.sortBy.length) {
+      const sortOrder = req.body.sortOrder === 'ASC' || req.body.sortOrder === 'DESC' ? req.body.sortOrder : 'DESC';
+
+      if (req.body.sortBy.includes('date')) {
+        query.addOrderBy('c.createdAt', sortOrder);
+      }
+
+      if (req.body.sortBy.includes('name')) {
+        query.addOrderBy('c.make', sortOrder);
+        query.addOrderBy('c.model', sortOrder);
+      }
+
+      if (req.body.sortBy.includes('relevance')) {
+        query.addOrderBy('c.relevantScore', sortOrder);
+      }
+    }
+
     const cars = await query.getMany();
     return cars;
   }
