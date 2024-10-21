@@ -4,7 +4,7 @@ import { Reservation } from './reservation.entity';
 import { Company } from './company.entity';
 import { UserRole, UserStatus } from '../common/enums/shared.enums';
 
-export type CurrentUser = {
+export type ReqUser = {
   id: number;
   firstName: string;
   lastName: string;
@@ -19,6 +19,8 @@ export type CurrentUser = {
   licenseNumber: string | null;
   iat: number;
   exp: number;
+  locationIds: number[];
+  companyId: number;
 };
 
 @Entity('users')

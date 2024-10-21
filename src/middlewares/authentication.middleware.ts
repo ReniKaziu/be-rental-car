@@ -170,7 +170,7 @@ export class AuthenticationMiddleware {
     const user = req['user'];
 
     if (body && body.locationId) {
-      if (user?.locationsIds?.includes(body.locationId)) {
+      if (user?.locationIds?.includes(body.locationId)) {
         return next();
       }
     }
@@ -184,10 +184,10 @@ export class AuthenticationMiddleware {
     return res.status(403).json({ message: 'You are not allowed to perform this action' });
   }
 
-  public static isCompany(req: Request, res: Response, next: NextFunction) {
+  public static checkRole(req: Request, res: Response, next: NextFunction, roles: string[]) {
     const user = req['user'];
 
-    if (user?.role === UserRole.OWNER) {
+    if (roles.includes(user?.role)) {
       return next();
     }
 

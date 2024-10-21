@@ -1,7 +1,7 @@
 import { getRepository } from 'typeorm';
 import { Company } from '../entities/company.entity';
 import { Request } from 'express';
-import { User } from '../entities/user.entity';
+import { ReqUser, User } from '../entities/user.entity';
 import { CustomError } from '../common/utilities/CustomError';
 import { phone as validatePhoneNumber } from 'phone';
 import { Car } from '../entities/car.entity';
@@ -39,14 +39,14 @@ export class CompanyService {
     companyRepository.save(newCompany, { reload: false });
   }
 
-  public static async getCompanyCars(req: Request) {
+  public static async getCompanyCars(req: Request, user: ReqUser) {
     const carRepository = getRepository(Car);
-    const myLocations = req['user'].locationsIds;
+    const { locationIds } = user;
 
     const query = carRepository
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.location', 'l')
-      .where('c.locationId IN (:...locations)', { locations: myLocations ?? [] });
+      .where('c.locationId IN (:...locations)', { locations: locationIds });
 
     if (req.body.type && req.body.type.length) {
       const types = [];

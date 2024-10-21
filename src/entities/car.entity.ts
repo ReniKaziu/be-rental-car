@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Common } from '../common/entities/common';
-import { CarMaintenance } from './car-service.entity';
+import { CarMaintenance } from './car-maintenance.entity';
 import { Reservation } from './reservation.entity';
 import { Location } from './location.entity';
 import { CarType, FuelType, GearType } from '../common/enums/shared.enums';

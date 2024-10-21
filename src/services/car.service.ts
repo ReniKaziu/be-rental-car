@@ -2,80 +2,39 @@ import { getConnection, getRepository } from 'typeorm';
 import { Request } from 'express';
 import { CustomError } from '../common/utilities/CustomError';
 import { Car } from '../entities/car.entity';
-import { Location } from '../entities/location.entity';
 import { Filter } from '../entities/filters.entity';
-const crypto = require('crypto');
 
 export class CarService {
   public static async create(req: Request) {
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
+    let createdCar: Car;
     const carRepository = getRepository(Car);
-    const locationRepository = getRepository(Location);
     const filtersRepository = getRepository(Filter);
+
     const { licensePlate, locationId } = req.body;
-
-    if (!locationId) {
-      throw new CustomError(400, 'Location ID is required');
-    }
-
-    const location = await locationRepository.count({ id: locationId });
-    if (!location) {
-      throw new CustomError(400, 'Location does not exist');
-    }
 
     const existingCar = await carRepository.count({ licensePlate, locationId });
     if (existingCar) {
       throw new CustomError(400, 'Car already exists');
     }
 
-    let car = new Car();
-
-    car = {
+    let car = {
       ...req.body,
       licensePlate: this.trimLicensePlate(licensePlate)
     };
 
-    const newCar = carRepository.create(car);
+    car = carRepository.create(car);
 
+    const connection = getConnection();
+    const queryRunner = connection.createQueryRunner();
     await queryRunner.startTransaction();
 
     try {
-      const createdCar = await queryRunner.manager.save(Car, newCar);
+      createdCar = await queryRunner.manager.save(Car, car);
 
-      const hashedPayload = crypto
-        .createHash('sha256')
-        .update(
-          createdCar.make +
-            createdCar.model +
-            createdCar.engine +
-            createdCar.year +
-            createdCar.fuelType +
-            createdCar.gearType +
-            createdCar.type +
-            createdCar.seats +
-            createdCar.doors
-        )
-        .digest('hex');
+      const filter = filtersRepository.create(createdCar as Partial<Filter>);
+      filter.generateHash();
 
-      const existingFilter = await filtersRepository.count({ where: { hash: hashedPayload } });
-
-      if (!existingFilter) {
-        const newFilter = new Filter();
-        newFilter.make = createdCar.make;
-        newFilter.model = createdCar.model;
-        newFilter.engine = createdCar.engine;
-        newFilter.year = createdCar.year;
-        newFilter.fuelType = createdCar.fuelType;
-        newFilter.gearType = createdCar.gearType;
-        newFilter.type = createdCar.type;
-        newFilter.seats = createdCar.seats;
-        newFilter.doors = createdCar.doors;
-
-        const createdFilter = filtersRepository.create(newFilter);
-
-        await queryRunner.manager.save(Filter, createdFilter);
-      }
+      await queryRunner.manager.createQueryBuilder().insert().into(Filter).values(filter).orIgnore().execute();
 
       await queryRunner.commitTransaction();
     } catch (err) {
@@ -83,6 +42,7 @@ export class CarService {
       throw new CustomError(500, 'Error creating car');
     } finally {
       await queryRunner.release();
+      return createdCar;
     }
   }
 

@@ -209,7 +209,7 @@ export class AuthenticationService {
         jwtPayload = {
           ...jwtPayload,
           companyId: companies[0].id,
-          locationsIds: companies[0].locations.map((l) => l.id)
+          locationIds: companies[0].locations.map((l) => l.id)
         };
       }
     }
@@ -228,7 +228,7 @@ export class AuthenticationService {
   public static async resetPassword({ phone, code, password }: { phone: string; code: string; password: string }) {
     const userRepository = getRepository(User);
     const user = await userRepository.findOne({
-      where: { status: UserStatus.ACTIVE, resetPasswordCode: code, phone: validatePhoneNumber(phone).phoneNumber },
+      where: { resetPasswordCode: code, phone: validatePhoneNumber(phone).phoneNumber },
       select: [
         'id',
         'firstName',

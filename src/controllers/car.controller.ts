@@ -5,9 +5,10 @@ import { CarService } from '../services/car.service';
 import { CarMiddleware } from '../middlewares/car.middleware';
 
 @Controller('/cars')
+@UseBefore(AuthenticationMiddleware.verifyToken)
 export class CarController {
   @Post('')
-  @UseBefore(AuthenticationMiddleware.verifyToken, AuthenticationMiddleware.isCompanyAuthorized, CarMiddleware.create)
+  @UseBefore(AuthenticationMiddleware.isCompanyAuthorized, CarMiddleware.create)
   public async create(@Req() req: Request, @Res() res: Response) {
     await CarService.create(req);
 
