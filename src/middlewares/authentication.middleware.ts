@@ -2,7 +2,6 @@ import { NextFunction, Response, Request } from 'express';
 import Joi from 'joi';
 import { phone } from 'phone';
 import * as jwt from 'jsonwebtoken';
-import { UserRole } from '../common/enums/shared.enums';
 
 export class AuthenticationMiddleware {
   public static register(req: Request, res: Response, next: NextFunction) {

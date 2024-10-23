@@ -39,7 +39,7 @@ export class CompanyService {
     companyRepository.save(newCompany, { reload: false });
   }
 
-  public static async getCompanyCars(req: Request, user: ReqUser) {
+  public static getCompanyCars(req: Request, user: ReqUser) {
     const carRepository = getRepository(Car);
     const { locationIds } = user;
 
@@ -83,7 +83,6 @@ export class CompanyService {
       }
     }
 
-    const cars = await query.getMany();
-    return cars;
+    return query.getMany();
   }
 }
