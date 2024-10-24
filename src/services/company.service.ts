@@ -5,7 +5,8 @@ import { ReqUser, User } from '../entities/user.entity';
 import { CustomError } from '../common/utilities/CustomError';
 import { phone as validatePhoneNumber } from 'phone';
 import { Car } from '../entities/car.entity';
-import { CarSize, mappedCarSizes } from '../common/enums/shared.enums';
+import { CarSize, mappedCarSizes, ReservationStatus } from '../common/enums/shared.enums';
+import { Reservation } from '../entities/reservation.entity';
 
 export class CompanyService {
   public static async create(req: Request, user: Partial<User>) {
@@ -67,7 +68,7 @@ export class CompanyService {
     }
 
     if (req.body.sortBy && req.body.sortBy.length) {
-      const sortOrder = req.body.sortOrder === 'ASC' || req.body.sortOrder === 'DESC' ? req.body.sortOrder : 'DESC';
+      const sortOrder = req.body.sortOrder ?? 'DESC';
 
       if (req.body.sortBy.includes('date')) {
         query.addOrderBy('c.createdAt', sortOrder);
@@ -82,6 +83,69 @@ export class CompanyService {
         query.addOrderBy('c.relevantScore', sortOrder);
       }
     }
+
+    return query.getMany();
+  }
+
+  public static getCompanyActiveReservations(req: Request, user: ReqUser) {
+    const reservationRepository = getRepository(Reservation);
+    const { locationIds } = user;
+
+    const query = reservationRepository
+      .createQueryBuilder('r')
+      .innerJoin('r.car', 'c')
+      .innerJoin('c.location', 'l')
+      .where('l.id IN (:...locations)', { locations: locationIds })
+      .andWhere('r.status IN (:...statuses)', { statuses: req.body.statuses })
+      .select([
+        'r.id',
+        'r.from',
+        'r.to',
+        'r.price',
+        'r.status',
+        'r.notes',
+        'r.isShuttle',
+        'c.id',
+        'c.make',
+        'c.model',
+        'c.type',
+        'l.id',
+        'l.name'
+      ]);
+
+    if (req.body.from && req.body.to) {
+      query.andWhere('r.from <= :to AND r.to >= :from', { from: req.body.from, to: req.body.to });
+    }
+
+    if (req.body.from && !req.body.to) {
+      query.andWhere('r.from >= :from', { from: req.body.from });
+    }
+
+    if (req.body.to && !req.body.from) {
+      query.andWhere('r.to <= :to', { to: req.body.to });
+    }
+
+    if (!req.body.from && !req.body.to) {
+      query.andWhere('r.to >= :now', { now: new Date().getTime() });
+    }
+
+    if (req.body.isShuttle) {
+      query.andWhere('r.isShuttle = :isShuttle', { isShuttle: req.body.isShuttle });
+    }
+
+    return query.getMany();
+  }
+
+  public static searchCompanyReservations(req: Request, user: ReqUser) {
+    const reservationRepository = getRepository(Reservation);
+
+    const query = reservationRepository
+      .createQueryBuilder('r')
+      .innerJoin('r.car', 'c')
+      .innerJoin('c.location', 'l')
+      .where('l.id IN (:...locations)', { locations: user.locationIds })
+      .andWhere('r.status IN (:...statuses)', { statuses: [ReservationStatus.APPROVED] })
+      .andWhere('(r.id LIKE :qs OR LOWER(c.description) LIKE LOWER(:qs))', { qs: `${req.body.qs}%` });
 
     return query.getMany();
   }

@@ -35,7 +35,7 @@ useExpressServer(app, {
   defaultErrorHandler: false,
   routePrefix: '/api',
   middlewares: [HttpErrorHandler],
-  currentUserChecker: async (action: Action) => {
+  currentUserChecker: (action: Action) => {
     return action.request['user'];
   }
 });

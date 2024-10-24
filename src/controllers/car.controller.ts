@@ -10,8 +10,8 @@ export class CarController {
   @Post('')
   @UseBefore(AuthenticationMiddleware.isCompanyAuthorized, CarMiddleware.create)
   public async create(@Req() req: Request, @Res() res: Response) {
-    await CarService.create(req);
+    const car = await CarService.create(req);
 
-    return res.status(201).json({ message: 'Car created' });
+    return res.status(201).json({ message: 'Car created', data: car });
   }
 }

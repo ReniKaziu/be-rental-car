@@ -44,6 +44,11 @@ export class Reservation extends Common {
   })
   public notes: string;
 
+  @Column({
+    default: false
+  })
+  public isShuttle: boolean;
+
   @ManyToOne(() => User, (user) => user.reservations)
   public user: User;
 
