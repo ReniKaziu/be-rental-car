@@ -1,4 +1,4 @@
-import { Controller, CurrentUser, Post, Req, Res, UseBefore } from 'routing-controllers';
+import { Controller, CurrentUser, Post, Req, Res, UseAfter, UseBefore } from 'routing-controllers';
 import { AuthenticationMiddleware } from '../middlewares/authentication.middleware';
 import { NextFunction, Request, Response } from 'express';
 import { CompanyService } from '../services/company.service';
@@ -20,10 +20,26 @@ export class CompanyController {
   }
 
   @Post('/:companyId/cars')
-  @UseBefore(AuthenticationMiddleware.isCompanyAuthorized)
+  @UseBefore(AuthenticationMiddleware.isCompanyAuthorized, CompanyMiddleware.validateCompanyCarsFilters)
   public async getCompanyCars(@Req() req: Request, @Res() res: Response, @CurrentUser() user: ReqUser) {
     const cars = await CompanyService.getCompanyCars(req, user);
 
     return res.status(200).json(cars);
+  }
+
+  @Post('/:companyId/active-reservations')
+  @UseBefore(AuthenticationMiddleware.isCompanyAuthorized, CompanyMiddleware.validateActiveReservationsFilters)
+  public async getCompanyActiveReservations(@Req() req: Request, @Res() res: Response, @CurrentUser() user: ReqUser) {
+    const reservations = await CompanyService.getCompanyActiveReservations(req, user);
+
+    return res.status(200).json(reservations);
+  }
+
+  @Post('/:companyId/active-reservations/search')
+  @UseBefore(AuthenticationMiddleware.isCompanyAuthorized)
+  public async searchCompanyReservations(@Req() req: Request, @Res() res: Response, @CurrentUser() user: ReqUser) {
+    const reservations = await CompanyService.searchCompanyReservations(req, user);
+
+    return res.status(200).json(reservations);
   }
 }

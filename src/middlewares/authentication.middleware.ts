@@ -170,13 +170,13 @@ export class AuthenticationMiddleware {
     const user = req['user'];
 
     if (body && body.locationId) {
-      if (user?.locationIds?.includes(body.locationId)) {
+      if (user.locationIds?.includes(body.locationId)) {
         return next();
       }
     }
 
     if (params && params.companyId) {
-      if (user?.companyId === +params.companyId) {
+      if (user.companyId === Number(params.companyId)) {
         return next();
       }
     }

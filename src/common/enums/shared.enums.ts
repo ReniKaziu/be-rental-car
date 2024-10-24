@@ -45,10 +45,10 @@ export enum LogLevel {
 }
 
 export enum ReservationStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  CANCELED = 'CANCELED'
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  CANCELED = 'canceled'
 }
 
 export enum Day {
